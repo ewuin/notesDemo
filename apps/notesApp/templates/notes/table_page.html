@@ -1,0 +1,93 @@
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous">
+</script>
+
+<script>
+
+$('#note_update').submit(function(e){
+  e.preventDefault();
+     console.log('attempting update')
+  $.ajax({
+    url:'/update_note',
+    method:'post',
+    data:$(this).serialize(),
+    success:function(serverResponse){
+      console.log("updated")
+ },
+  })
+})
+///////////////
+$('.delete').click(function(e){
+     console.log('attempting delete')
+  $.ajax({
+    url:'/delete2',
+    method:'post',
+    data:$(this).parent().serialize(),
+   success:function(serverResponse){
+      console.log("deleted")
+      location.reload()
+ },
+  })
+})
+/////////////////
+$(".note").click(function(){
+   $(this).css('display','none');
+  $(this).next().css('display','inline');
+});
+/////////////////
+$('.cancel').click(function(){
+  console.log("cancel cliked")
+  $(this).parent().css("display","none")
+  $(this).parent().prev().css("display","inline")
+});
+
+/////////////////
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+////////////////
+
+</script>
+
+<table style="width: 100%; border: 1px solid black; border-collapse:collapse; padding: 5px">
+  <thead>
+    <th style='border: 1px solid silver; padding: 7px; margin-top: 20px;'>id</th>
+    <th style='border: 1px solid silver; padding: 7px; margin-top: 20px;'>Note</th>
+    <th style='border: 1px solid silver; padding: 7px; margin-top: 20px;'>Created</th>
+  </thead>
+  <tbody>
+    {%for n in notes%}
+    {%  ifequal n.on_page  page_selected %}
+    <tr style='border: 1px solid silver; padding:7px; margin-top: 20px;'>
+      <td style='border: 1px solid silver; padding:7px; margin-top: 20px;'>{{n.id}}</td>
+      <td  style='width:65%; border: 1px solid silver; padding:7px; margin-top: 20px;'>
+        <p class='note'> {{n.note}} </p>
+        <form style="display:none" class="note_update" action="/update_note" method='post'>
+          {% csrf_token %}
+          <input type="hidden" name="idTU" value="{{n.id}}">
+          <textarea name="noteTE"  cols="30" rows="1" placeholder="{{n.note}}"></textarea>
+          <input type="submit" value="Update Note">
+          <p class="cancel">Cancel</p>
+          <p class="delete">Delete</p>
+        </form>
+      </td>
+      <td style=' width:25%; border: 1px solid silver; padding:7px; margin-top: 20px;'>{{n.created_at}}</td>
+    </tr>
+    {% endifequal %}
+    {%endfor%}
+  </tbody>
+</table>

@@ -1,0 +1,30 @@
+<script
+  src="https://code.jquery.com/jquery-3.2.1.min.js"
+  integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+  crossorigin="anonymous">
+</script>
+<script>
+$('.page_select').click(function(e){
+
+  console.log('attempting page select');
+  $.ajax({
+    url: '/select_page',
+    method:'post',
+    data:$(this).parent().serialize(),
+    success:function(serverResponse){
+      console.log("will select")
+      $('#test').html(serverResponse)
+ }
+  })
+});
+//////////////////
+
+</script>
+
+  <h5>Pages</h5>
+  {% for p in pages.values %}
+  <form action="/select_page" method="post" style="display:inline-block;">
+    {% csrf_token %}
+    <input type="hidden" name="page_selected" value={{p}}>
+    <p class="page_select"> {{p}}</p></form>
+  {%endfor%}

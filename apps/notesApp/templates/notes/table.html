@@ -1,0 +1,188 @@
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Ajax Demo</title>
+
+  <script
+    src="https://code.jquery.com/jquery-3.2.1.min.js"
+    integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4="
+    crossorigin="anonymous">
+  </script>
+
+  <script>
+    $(document).ready(function(){
+refresh();
+///////////////////
+function refresh_pagination(){
+  console.log("refreshing pagination")
+  $.ajax({
+    url:'/refresh_pagination',
+  //  dataType:'json',
+    success:function(serverResponse){
+    console.log("new pages")
+    $('#pages').html(serverResponse)
+  },
+  })
+};
+////////////////
+      function refresh(){
+        console.log("refreshing")
+        $.ajax({
+          url:'/select_page',
+          data:{'page_selected':1,
+                  'notes_dict':null},
+          method:'post',
+          headers: {
+             "X-CSRFToken": getCookie("csrftoken")
+             },
+        //  dataType:'json',
+          success:function(serverResponse){
+          console.log("sucessful refresh")
+         $('#test').html(serverResponse)
+        },
+        })
+    };
+/////////////////
+    function getCookie(name) {
+        var cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+////////////////
+$("#add").submit(function(e){
+e.preventDefault();
+$.ajax({
+  url:$(this).attr('action'),
+  method: 'post',
+  data:$(this).serialize(),
+  headers: {
+     "X-CSRFToken": getCookie("csrftoken")
+     },
+  success: function x(serverResponse){
+      console.log("successful add");
+  },
+
+}).done(function(){
+          refresh_pagination();
+           refresh();
+      });
+} )
+
+///////////////
+$('.delete_note').click(function(e){
+
+  console.log('attempting delete2');
+  item=$(this).parent().parent();
+  item.remove()
+  $.ajax({
+    url: '/delete',
+    method:'post',
+    data:$(this).parent().serialize(),
+    success:function(serverResponse){
+      console.log("will remove.")
+ }
+  })
+});
+
+//////////////
+$('.page_select').click(function(e){
+
+  console.log('attempting page select');
+  $.ajax({
+    url: '/select_page',
+    method:'post',
+    data:$(this).parent().serialize(),
+    success:function(serverResponse){
+      console.log("will select")
+      $('#test').html(serverResponse)
+ }
+  }).done(function(){
+            refresh_pagination();
+        });
+});
+//////////////////
+$('.apply_filter').click(function(){
+  console.log("attempting date filter")
+  $.ajax({
+    url:$(this).parent().attr('action'),
+    method:'post',
+    data:$(this).parent().serialize(),
+    success:function(serverResponse){
+      console.log("filter success")
+      $('#test').html(serverResponse)
+      }
+  }).done(function(){
+            refresh_pagination();
+        }); //end ajax
+})
+////////////////
+
+})
+</script>
+
+<style>
+.page_select:hover {
+    background-color: yellow;
+    color:blue
+}
+</style>
+
+</head>
+
+<body>
+  <div id="wrapper" style='width:960px; margin:auto; padding:7px; '>
+
+<div id="pages">
+  <h5>Pages</h5>
+  {% for p in pages.values %}
+  <form action="/select_page" method="post" style="display:inline-block;">
+      {% csrf_token %}
+    <input type="hidden" name="notes_dict" value="{{request.session.notes}}">
+    <input type="hidden" name="page_selected" value={{p}}>
+    <p class="page_select" style="border-right:1px solid black;"> {{p}}  </p></form>
+  {%endfor%}
+</div>
+
+<div id="date_filter">
+  <h5>Filter By Date</h5>
+  <form id="from_date" action="/from_date" method='post' style="display:inline-block">
+    {% csrf_token %}
+    <label>From date: <input type="datetime-local" name="from_date"></label>
+    <p style="color:blue; display:inline-block; font-size:75%;" class="apply_filter">Apply Filter</p>
+  </form>
+  <form id="to_date" action="/to_date" method='post' style="display:inline-block">
+    {% csrf_token %}
+    <label>To date: <input type="datetime-local" name="to_date"></label>
+    <p style="color:blue; display:inline-block; font-size:75%;" class="apply_filter">Apply Filter</p>
+  </form>
+</div>
+
+
+<div id="test">
+
+</div>
+
+
+  <div id="placeholder" style='border: 1px solid silver; padding;7px; margin-top: 20px;'>
+  <h2>Add a Note</h2>
+  <form id="add" action="/add2" method="post">
+    {% csrf_token %}
+    <label>Note: <textarea name="noteTA" placeholder="add a note..."></textarea></label>
+    <input type="submit">
+  </form>
+  </div>
+
+
+  </div> <!--end wrapper -->
+  </body>
+  </html>
